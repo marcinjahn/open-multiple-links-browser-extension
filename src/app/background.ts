@@ -16,11 +16,7 @@ FromBackgroundScript.listenToContentScript("DISABLE_CONTEXT_MENU", () => {
 setUpClickListener();
 
 function setUpClickListener() {
-    chrome.contextMenus.onClicked.addListener((info: chrome.contextMenus.OnClickData, tab: chrome.tabs.Tab) => {
-        if (!contextMenuEnabled) {
-            return;
-        }
-        
+    chrome.contextMenus.onClicked.addListener((info: chrome.contextMenus.OnClickData, tab: chrome.tabs.Tab) => {        
         (async () => {
             const [tab] = await chrome.tabs.query({active: true, lastFocusedWindow: true});
             
