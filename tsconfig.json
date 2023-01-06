@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "noImplicitAny": true,
+        "target": "es2022",
+        "module": "es2022",
+        "moduleResolution": "node",
+        "sourceMap": true,
+        "allowSyntheticDefaultImports": true,
+        "baseUrl": "./src",
+        "resolveJsonModule": true,
+        "esModuleInterop": true,
+    }
+}
