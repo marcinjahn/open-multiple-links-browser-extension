@@ -4,7 +4,7 @@
 export function selectionContainsLinks(): boolean {
     const rawHtml = getRawHtml(document.getSelection());
     let links = extractLinks(rawHtml);
-    
+
     return links.length > 0;
 }
 
@@ -13,12 +13,13 @@ export function selectionContainsLinks(): boolean {
  */
 export function getLinksFromSelection(): string[] {
     const rawHtml = getRawHtml(document.getSelection());
-    
+
     let links = extractLinks(rawHtml);
     links = addHostIfMissing(links);
     links = addSchemaIfMissing(links);
 
-    return links;
+    // remove duplicates
+    return [...new Set(links.filter((a) => a))];
 }
 
 /**
@@ -26,15 +27,17 @@ export function getLinksFromSelection(): string[] {
  * @param selection
  */
 function getRawHtml(selection: Selection) {
-    const range = selection.getRangeAt(0);
-    const fragment = range.cloneContents();
+    try {
+        const range = selection.getRangeAt(0);
+        const fragment = range.cloneContents();
 
-    const tempDiv = document.createElement('div');
-    tempDiv.appendChild(fragment);
-    const html = tempDiv.innerHTML;
-    tempDiv.remove();
-    
-    return html;
+        const tempDiv = document.createElement("div");
+        tempDiv.appendChild(fragment);
+        const html = tempDiv.innerHTML;
+        tempDiv.remove();
+        return html;
+    } catch (e) {}
+    return "";
 }
 
 /**
@@ -42,31 +45,27 @@ function getRawHtml(selection: Selection) {
  * @param rawHtml Selected HTML
  */
 function extractLinks(rawHtml: string): string[] {
-    // [\n\r\s] - any whitespace character, including linebreaks
-    // *? - matches any amount, lazily
-    // (?!#) - makes sure that # anchors are not matched - it's unlikely that these would be desired
-    const regexp = /<[\n\r\s]*?a[\n\r\s]*?href[\n\r\s]*?=[\n\r\s]*?"[\n\r\s]*?(?<url>(?!#).*?)[\n\r\s]*?"[\S\s]*?>[\S\s]*?<[\n\r\s]*?\/[\n\r\s]*?a[\n\r\s]*?>/g;
-    
-    return Array.from(rawHtml.matchAll(regexp)).map(n => n.groups.url);
+    const regexp = /<a\s+(?:[^>]*?[\s"']+)?href=(["'])(?<url>(?!mailto:).*?)\1/gim;
+    return Array.from(rawHtml.matchAll(regexp)).map((n) => n.groups.url);
 }
 
 /**
- * Adds the current page origin to the links if they are 
+ * Adds the current page origin to the links if they are
  * relative
  * @param links Input links
  */
-function addHostIfMissing(links: string[]) : string[] {
+function addHostIfMissing(links: string[]): string[] {
     const origin = window.location.origin;
-    
-    return links.map(link => {
+
+    return links.map((link) => {
         if (link.startsWith("/")) {
             return `${origin}${link}`;
         } else if (link.startsWith(".")) {
             return `${origin}/${link}`;
         }
-        
+
         return link;
-    })
+    });
 }
 
 /**
@@ -78,12 +77,11 @@ function addHostIfMissing(links: string[]) : string[] {
  * @param links Input links
  */
 function addSchemaIfMissing(links: string[]): string[] {
-    return links.map(link => {
+    return links.map((link) => {
         if (link.indexOf("://") !== -1) {
             return link;
         }
-        
-        return "https://" + link;
-    })
-}
 
+        return "https://" + link;
+    });
+}
