@@ -2,24 +2,24 @@
  * Checks whether the user selection contains any links
  */
 export function selectionContainsLinks(): boolean {
-    const rawHtml = getRawHtml(document.getSelection());
-    let links = extractLinks(rawHtml);
+  const rawHtml = getRawHtml(document.getSelection());
+  let links = extractLinks(rawHtml);
 
-    return links.length > 0;
+  return links.length > 0;
 }
 
 /**
  * Retrieves all links from the user's selection
  */
 export function getLinksFromSelection(): string[] {
-    const rawHtml = getRawHtml(document.getSelection());
+  const rawHtml = getRawHtml(document.getSelection());
 
-    let links = extractLinks(rawHtml);
-    links = addHostIfMissing(links);
-    links = addSchemaIfMissing(links);
+  let links = extractLinks(rawHtml);
+  links = addHostIfMissing(links);
+  links = addSchemaIfMissing(links);
 
-    // remove duplicates
-    return [...new Set(links.filter((a) => a))];
+  // remove duplicates
+  return [...new Set(links.filter((a) => a))];
 }
 
 /**
@@ -27,17 +27,17 @@ export function getLinksFromSelection(): string[] {
  * @param selection
  */
 function getRawHtml(selection: Selection) {
-    try {
-        const range = selection.getRangeAt(0);
-        const fragment = range.cloneContents();
+  try {
+    const range = selection.getRangeAt(0);
+    const fragment = range.cloneContents();
 
-        const tempDiv = document.createElement("div");
-        tempDiv.appendChild(fragment);
-        const html = tempDiv.innerHTML;
-        tempDiv.remove();
-        return html;
-    } catch (e) {}
-    return "";
+    const tempDiv = document.createElement("div");
+    tempDiv.appendChild(fragment);
+    const html = tempDiv.innerHTML;
+    tempDiv.remove();
+    return html;
+  } catch (e) {}
+  return "";
 }
 
 /**
@@ -45,8 +45,9 @@ function getRawHtml(selection: Selection) {
  * @param rawHtml Selected HTML
  */
 function extractLinks(rawHtml: string): string[] {
-    const regexp = /<a\s+(?:[^>]*?[\s"']+)?href=(["'])(?<url>(?!mailto:).*?)\1/gim;
-    return Array.from(rawHtml.matchAll(regexp)).map((n) => n.groups.url);
+  const regexp =
+    /<a\s+(?:[^>]*?[\s"']+)?href=(["'])(?<url>(?!mailto:).*?)\1/gim;
+  return Array.from(rawHtml.matchAll(regexp)).map((n) => n.groups.url);
 }
 
 /**
@@ -55,17 +56,23 @@ function extractLinks(rawHtml: string): string[] {
  * @param links Input links
  */
 function addHostIfMissing(links: string[]): string[] {
-    const origin = window.location.origin;
+  return links.map((link) => {
+    if (link.startsWith("/")) {
+      const origin = window.location.origin;
 
-    return links.map((link) => {
-        if (link.startsWith("/")) {
-            return `${origin}${link}`;
-        } else if (link.startsWith(".")) {
-            return `${origin}/${link}`;
-        }
+      return `${origin}${link}`;
+    } else if (link.startsWith(".")) {
+      const origin = window.location.origin;
 
-        return link;
-    });
+      return `${origin}/${link}`;
+    } else if (link.startsWith("#")) {
+      const currentUrl = window.location.href;
+
+      return `${currentUrl}${link}`;
+    }
+
+    return link;
+  });
 }
 
 /**
@@ -77,11 +84,11 @@ function addHostIfMissing(links: string[]): string[] {
  * @param links Input links
  */
 function addSchemaIfMissing(links: string[]): string[] {
-    return links.map((link) => {
-        if (link.indexOf("://") !== -1) {
-            return link;
-        }
+  return links.map((link) => {
+    if (link.indexOf("://") !== -1) {
+      return link;
+    }
 
-        return "https://" + link;
-    });
+    return "https://" + link;
+  });
 }
