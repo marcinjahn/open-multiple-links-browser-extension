@@ -9,7 +9,7 @@
     "prepare": "husky install"
   },
   "devDependencies": {
-    "@types/chrome": "^0.0.200",
+    "@types/chrome": "^0.0.270",
     "copy-webpack-plugin": "^11.0.0",
     "ts-loader": "^9.4.1",
     "tsconfig-paths-webpack-plugin": "^4.0.0",
